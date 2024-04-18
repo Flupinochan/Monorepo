@@ -1,0 +1,785 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MonorepoProjectStack Test Snapshot 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "CodeBuild2FDE9E35": {
+      "Properties": {
+        "Artifacts": {
+          "Type": "CODEPIPELINE",
+        },
+        "Cache": {
+          "Type": "NO_CACHE",
+        },
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": {
+              "Ref": "CodeBuildCloudWatchLogs58D96F43",
+            },
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "monorepo-codebuild",
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "CodeBuildIAMRole99B4B757",
+            "Arn",
+          ],
+        },
+        "Source": {
+          "BuildSpec": "{
+  "version": "0.2",
+  "phases": {
+    "build": {
+      "commands": [
+        "echo \${sourceDirectoryName}",
+        "echo \${deployS3BucketName}",
+        "aws s3 sync \${sourceDirectoryName} s3://\${deployS3BucketName} --delete"
+      ]
+    }
+  }
+}",
+          "Type": "CODEPIPELINE",
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "CodeBuildCloudWatchLogs58D96F43": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LogGroupClass": "STANDARD",
+        "LogGroupName": "monorepo-codebuild-logs",
+        "RetentionInDays": 1,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "CodeBuildIAMRole99B4B757": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "codecommit:*",
+                    "codebuild:*",
+                    "codepipeline:*",
+                    "logs:*",
+                    "s3:*",
+                    "iam:*",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "codebuildPolicy",
+          },
+        ],
+        "RoleName": "codebuildIAMRole-monorepo",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CodeBuildIAMRoleDefaultPolicy59F13077": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "CodeBuildCloudWatchLogs58D96F43",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:ap-northeast-3:247574246160:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "CodeBuild2FDE9E35",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:ap-northeast-3:247574246160:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "CodeBuild2FDE9E35",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:ap-northeast-3:247574246160:report-group/",
+                    {
+                      "Ref": "CodeBuild2FDE9E35",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "S3CodePipelineArtifact91067FA4",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "S3CodePipelineArtifact91067FA4",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CodeBuildIAMRoleDefaultPolicy59F13077",
+        "Roles": [
+          {
+            "Ref": "CodeBuildIAMRole99B4B757",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CodeCommit506A881C": {
+      "Properties": {
+        "Code": {
+          "BranchName": "main",
+          "S3": {
+            "Bucket": "cdk-hnb659fds-assets-247574246160-ap-northeast-3",
+            "Key": "018f30c2ae665c26fe4352d9e3116c29784b646ceb7b31decb3dd85b42000c58.zip",
+          },
+        },
+        "RepositoryDescription": "Monorepo",
+        "RepositoryName": "Monorepo",
+      },
+      "Type": "AWS::CodeCommit::Repository",
+    },
+    "CodeCommitMonorepoProjectStackCodePipeline3C086EC1mainEventRuleAB0B1DD8": {
+      "Properties": {
+        "EventPattern": {
+          "detail": {
+            "event": [
+              "referenceCreated",
+              "referenceUpdated",
+            ],
+            "referenceName": [
+              "main",
+            ],
+            "referenceType": [
+              "branch",
+            ],
+          },
+          "detail-type": [
+            "CodeCommit Repository State Change",
+          ],
+          "resources": [
+            {
+              "Fn::GetAtt": [
+                "CodeCommit506A881C",
+                "Arn",
+              ],
+            },
+          ],
+          "source": [
+            "aws.codecommit",
+          ],
+        },
+        "Name": "triggerMonorepoPipeline-lambda-rule",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "LambdaD247545B",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "CodeCommitMonorepoProjectStackCodePipeline3C086EC1mainEventRuleAllowEventRuleMonorepoProjectStackLambda8EEF25E61ABB6199": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "LambdaD247545B",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "CodeCommitMonorepoProjectStackCodePipeline3C086EC1mainEventRuleAB0B1DD8",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "CodePipelineActionIAMRoleA42EA005": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":iam::247574246160:root",
+                    ],
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "codecommit:*",
+                    "codebuild:*",
+                    "codepipeline:*",
+                    "logs:*",
+                    "s3:*",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "codepipelineActionPolicy",
+          },
+        ],
+        "RoleName": "pipelineActionIAMRole-monorepo",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CodePipelineActionIAMRoleDefaultPolicy02298C9C": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "S3CodePipelineArtifact91067FA4",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "S3CodePipelineArtifact91067FA4",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codecommit:GetBranch",
+                "codecommit:GetCommit",
+                "codecommit:UploadArchive",
+                "codecommit:GetUploadArchiveStatus",
+                "codecommit:CancelUploadArchive",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "CodeCommit506A881C",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:StopBuild",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "CodeBuild2FDE9E35",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CodePipelineActionIAMRoleDefaultPolicy02298C9C",
+        "Roles": [
+          {
+            "Ref": "CodePipelineActionIAMRoleA42EA005",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CodePipelineB74E5936": {
+      "DependsOn": [
+        "CodePipelineIAMRoleDefaultPolicyDEAAEF9D",
+        "CodePipelineIAMRoleABCE4B1D",
+      ],
+      "Properties": {
+        "ArtifactStore": {
+          "Location": {
+            "Ref": "S3CodePipelineArtifact91067FA4",
+          },
+          "Type": "S3",
+        },
+        "ExecutionMode": "QUEUED",
+        "Name": "monorepo-pipeline",
+        "PipelineType": "V2",
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "CodePipelineIAMRoleABCE4B1D",
+            "Arn",
+          ],
+        },
+        "Stages": [
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Source",
+                  "Owner": "AWS",
+                  "Provider": "CodeCommit",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "BranchName": "main",
+                  "PollForSourceChanges": false,
+                  "RepositoryName": {
+                    "Fn::GetAtt": [
+                      "CodeCommit506A881C",
+                      "Name",
+                    ],
+                  },
+                },
+                "Name": "SourceCodeCommit",
+                "OutputArtifacts": [
+                  {
+                    "Name": "Artifact_source_SourceCodeCommit",
+                  },
+                ],
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "CodePipelineActionIAMRoleA42EA005",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 1,
+              },
+            ],
+            "Name": "source",
+          },
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "EnvironmentVariables": "[{"name":"sourceDirectoryName","type":"PLAINTEXT","value":"#{variables.sourceDirectoryName}"},{"name":"deployS3BucketName","type":"PLAINTEXT","value":"#{variables.deployS3BucketName}"}]",
+                  "ProjectName": {
+                    "Ref": "CodeBuild2FDE9E35",
+                  },
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": "Artifact_source_SourceCodeCommit",
+                  },
+                ],
+                "Name": "BuildS3",
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "CodePipelineActionIAMRoleA42EA005",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 2,
+              },
+            ],
+            "Name": "Build",
+          },
+        ],
+        "Variables": [
+          {
+            "DefaultValue": "default",
+            "Description": "Receive from Lambda",
+            "Name": "sourceDirectoryName",
+          },
+          {
+            "DefaultValue": "default",
+            "Description": "Receive from Lambda",
+            "Name": "deployS3BucketName",
+          },
+        ],
+      },
+      "Type": "AWS::CodePipeline::Pipeline",
+    },
+    "CodePipelineIAMRoleABCE4B1D": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codepipeline.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AWSCodePipeline_FullAccess",
+              ],
+            ],
+          },
+        ],
+        "RoleName": "pipelineIAMRole-monorepo",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CodePipelineIAMRoleDefaultPolicyDEAAEF9D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "S3CodePipelineArtifact91067FA4",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "S3CodePipelineArtifact91067FA4",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "CodePipelineActionIAMRoleA42EA005",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CodePipelineIAMRoleDefaultPolicyDEAAEF9D",
+        "Roles": [
+          {
+            "Ref": "CodePipelineIAMRoleABCE4B1D",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "LambdaCloudWatchLogs2EB2B492": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LogGroupClass": "STANDARD",
+        "LogGroupName": "triggerMonorepoPipeline-lambda-logs",
+        "RetentionInDays": 1,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "LambdaD247545B": {
+      "DependsOn": [
+        "LambdaIAMRoleCA1E3376",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-247574246160-ap-northeast-3",
+          "S3Key": "d3a06334ae220c0dfc44126afdaa22d24af6143f42b79ef384fef165c994c947.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "CODEPIPELINE": "monorepo-pipeline",
+            "LOG_LEVEL": "DEBUG",
+            "S3_SYNC_DIR_LIST": "monorepo-target-example-s3-a,monorepo-target-example-s3-b",
+          },
+        },
+        "FunctionName": "triggerMonorepoPipeline-lambda",
+        "Handler": "index.lambda_handler",
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "LambdaCloudWatchLogs2EB2B492",
+          },
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaIAMRoleCA1E3376",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.12",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "LambdaIAMRoleCA1E3376": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "codecommit:*",
+                    "codepipeline:*",
+                    "logs:*",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "codebuildPolicy",
+          },
+        ],
+        "RoleName": "lambdaIAMRole-triggerMonorepoPipeline-lambda",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "S3CodePipelineArtifact91067FA4": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": "monorepo-pipeline-artifact",
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "S3DeployTargetABCE05E21": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": "monorepo-target-example-s3-a",
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "S3DeployTargetB970BC0D5": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": "monorepo-target-example-s3-b",
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
